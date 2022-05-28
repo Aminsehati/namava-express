@@ -95,7 +95,7 @@ class AuthController {
             }
             const token = await tokenUtils.generateToken();
             return res.json({
-                isSuccess: false,
+                isSuccess: true,
                 data: {
                     token
                 }
