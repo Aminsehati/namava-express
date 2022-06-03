@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import otpUtils from '../../utils/otp-utils'
 import hashUtils from '../../utils/hash-utils'
 import userModel from '../../Model/user.model'
-import tokenUtils from '../../utils/token-utils'
+import tokenUtils from '../../utils/jwt-utils'
 import emailUtils from '../../utils/email-utils'
 class AuthController {
 
@@ -14,7 +14,6 @@ class AuthController {
             const ttl = 1000 * 60 * 2; // 2 min
             const expires = Date.now() + ttl;
             const data = `${phone}_${hashOtp}_${expires}`;
-            console.log(req.body);
             return res.json({
                 isSuccess: true,
                 data: {
@@ -46,13 +45,12 @@ class AuthController {
             });
             const token = await tokenUtils.generateToken({ _id: user._id });
             return res.json({
-                isSuccess: false,
+                isSuccess: true,
                 data: {
                     token
                 }
             })
         } catch (error) {
-            console.log(error);
             return res.status(500).json({
                 isSuccess: false,
                 message: "خطایی رخ داده است"
@@ -93,7 +91,8 @@ class AuthController {
                     message: "otp صحیح نمیباشد"
                 })
             }
-            const token = await tokenUtils.generateToken();
+            const userItem = await userModel.findOne({ phone });
+            const token = await tokenUtils.generateToken({ _id: userItem._id });
             return res.json({
                 isSuccess: true,
                 data: {
@@ -157,11 +156,9 @@ class AuthController {
             const { otp, sign } = req.body;
             const [email, hashOtp, expired] = sign.split("_");
             const hasExipred = Date.now() > expired;
-            console.log(hasExipred);
-            console.log(expired);
             const verifyOtp = await hashUtils.verifyPassword(otp, hashOtp);
             if (hasExipred || !verifyOtp) {
-                return res.json({
+                return res.status(400).json({
                     isSuccess: false,
                     message: "otp وارد شده صحیح نمیباشد"
                 })
@@ -233,7 +230,7 @@ class AuthController {
             const hasExipred = Date.now() > expired;
             const verifyOtp = await hashUtils.verifyPassword(otp, hashOtp);
             if (hasExipred || !verifyOtp) {
-                return res.json({
+                return res.status(400).json({
                     isSuccess: false,
                     message: "otp وارد شده صحیح نمیباشد"
                 })

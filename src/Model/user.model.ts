@@ -8,10 +8,6 @@ const otpSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-    password: {
-        type: String,
-        default: ""
-    },
     phone: {
         type: String,
         default: ""
